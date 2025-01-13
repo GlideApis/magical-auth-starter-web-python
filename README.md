@@ -1,4 +1,4 @@
-# Magical Auth Quickstart App Node
+# Magical Auth Quickstart App Python
 
 Welcome to Glide Magical Auth Quickstart project! This web app is built with Express and deploys seamlessly to Google Cloud Platform (GCP) using CloudRun. Follow the instructions below to get started quickly.
 
