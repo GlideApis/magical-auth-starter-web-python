@@ -12,7 +12,7 @@ Welcome to Glide Magical Auth Quickstart project! This web app is built with Exp
 ### 1. Clone the Repository
 
 ```bash
-git clone git@github.com:ClearBlockchain/magic-auth-nodejs-server-demo.git
+git clone git@github.com:GlideApis/magic-auth-nodejs-server-demo.git
 cd magic-auth-nodejs-server-demo
 ```
 
