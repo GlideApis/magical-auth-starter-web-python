@@ -12,6 +12,16 @@ def async_route(f):
         return asyncio.run(f(*args, **kwargs))
     return wrapped
 
+def get_client_ip():
+    """Get the client's IP address from the request.
+    Handles X-Forwarded-For header for proxy cases.
+    Returns the first IP in the chain (original client)."""
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if ip and ',' in ip:
+        # If multiple IPs in X-Forwarded-For, take the first one (original client)
+        ip = ip.split(',')[0].strip()
+    return ip
+
 app = Flask(__name__, 
     static_folder=os.path.join(os.path.dirname(__file__), 'static'),
     static_url_path=''
@@ -38,19 +48,22 @@ async def start_verification():
     """Start the magic auth verification process"""
     try:
         phone_number = request.json.get('phoneNumber')
-        print('Start Auth')
+        device_ip_address = get_client_ip()
+        print(f'Start Auth for {phone_number} from IP {device_ip_address}')
         
         session_id = str(uuid.uuid4())
         state_cache[session_id] = {
             'phoneNumber': phone_number,
-            'status': 'pending'
+            'status': 'pending',
+            'deviceIpAddress': device_ip_address
         }
         
         auth_res = await glide_client.magic_auth.start_auth(
             phone_number=phone_number,
             state=session_id,
             redirect_url=os.getenv('MAGIC_REDIRECT_URI', f'http://localhost:{PORT}/'),
-            fallback_channel='NO_FALLBACK'
+            fallback_channel='NO_FALLBACK',
+            device_ip_address=device_ip_address
         )
         
         # Convert the response object to a dictionary with correct fields
@@ -75,11 +88,13 @@ async def check_verification():
         data = request.json
         phone_number = data.get('phoneNumber')
         token = data.get('token')
-        print('Check Auth')
+        device_ip_address = get_client_ip()
+        print(f'Check Auth for {phone_number} from IP {device_ip_address}')
         
         check_res = await glide_client.magic_auth.verify_auth(
             phone_number=phone_number,
-            token=token
+            token=token,
+            device_ip_address=device_ip_address
         )
         
         # Update session status if verification successful
